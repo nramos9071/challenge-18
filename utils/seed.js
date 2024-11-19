@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { User, Thought } = require('./models');
+const { User, Thought } = require('../models');
 
 // Sample data
 const users = [
@@ -75,14 +75,16 @@ const seedDatabase = async () => {
         const createdThoughts = await Thought.insertMany(thoughts);
 
         // Update users with thoughts
-        await User.updateOne(
-            { username: 'john_doe' },
-            { $push: { thoughts: createdThoughts[0]._id } }
-        );
-        await User.updateOne(
-            { username: 'jane_doe' },
-            { $push: { thoughts: createdThoughts[1]._id } }
-        );
+        
+         for (let i = 0; i < createdUsers.length; i++) {
+            const user = createdUsers[i];
+            const userThoughts = createdThoughts.filter(thought => thought.username === user.username);
+            await User.findByIdAndUpdate(
+                user._id,
+                { $push: { thoughts: { $each: userThoughts.map(thought => thought._id) } } },
+                { new: true }
+            );
+        }
 
         console.log('Database seeded successfully');
         process.exit(0);
