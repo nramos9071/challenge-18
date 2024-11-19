@@ -31,7 +31,14 @@ module.exports = {
     },
     async updateUser(req, res) {
         try {
-            const userData = await User.findOneAndUpdate(req.params.id);
+            const userData = await User.findOneAndUpdate(
+                { _id: req.params.id },
+                req.body,
+                { new: true, runValidators: true }
+            );
+            if (!userData) {
+                return res.status(404).json({ message: 'User not found' });
+            }
             res.json(userData);
         } catch (err) {
             console.log(err);
